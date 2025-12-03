@@ -63,17 +63,17 @@ solvePart1 = solveWith 50 0
         else (+) 0
 
 solvePart2 :: [Rotation] -> Int
-solvePart2 rs = snd $ foldl go (50, 0) rs
+solvePart2 = go (50, 0)
   where
-    go :: (Int, Int) -> Rotation -> (Int, Int)
-    go (state, zeroCount) r@(Rotation side _) =
+    go :: (Int, Int) -> [Rotation] -> Int
+    go (_, zeroCount) [] = zeroCount
+    go (state, zeroCount) (r : rs) =
       let r' = rotationToInt r
-          state' = (state + r') `absMod` 100
-          zeroCount' =
-            zeroCount + (if state' == 0 then 1 else 0) + case side of
-              L -> abs $ (r' + state) `div` 100
-              R -> abs $ (r' - state) `div` 100
-       in (state', zeroCount')
+          adjustedState = state + r'
+          state' = adjustedState `absMod` 100
+          completeTurns = abs adjustedState `div` 100
+          zeroCount' = zeroCount + completeTurns + (if state /= 0 && adjustedState <= 0 then 1 else 0)
+       in go (state', zeroCount') rs
 
     rotationToInt :: Rotation -> Int
     rotationToInt (Rotation L (Angle a)) = -a
