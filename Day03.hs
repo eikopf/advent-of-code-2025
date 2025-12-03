@@ -12,7 +12,8 @@ solvePart1 = sum . map maxPair
   where
     -- Drops the last element of a finite list (identity on infinite lists).
     dropLast :: [a] -> [a]
-    dropLast [x] = []
+    dropLast [] = error "empty list"
+    dropLast [_] = []
     dropLast (x : xs) = x : dropLast xs
 
     -- Returns the value of the largest subsequence of length 2.
