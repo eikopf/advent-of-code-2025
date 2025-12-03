@@ -57,4 +57,4 @@ main = interact $ \s ->
   let input = parse s
       part1 = solvePart1 input
       part2 = solvePart2 input
-   in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2
+   in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2 ++ "\n"
