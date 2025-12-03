@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day01 where
 
 import Control.Monad (join, (<=<))
@@ -41,41 +39,49 @@ parseSide c = Left (BadSidePrefix c)
 parseAngle :: String -> Either Error Angle
 parseAngle s = bimap (const (MalformedAngle s)) Angle $ readEither s
 
-solvePart1 :: [Rotation] -> Either Error Int
-solvePart1 = Right . solveWith 50 0
-
-solveWith :: Int -> Int -> [Rotation] -> Int
-solveWith _ zeroCount [] = zeroCount
-solveWith state zeroCount (r : rs) =
-  let newState = applyRotation r state
-   in let newZeroCount = updateZeroCount newState zeroCount
-       in solveWith newState newZeroCount rs
+absMod :: Int -> Int -> Int
+absMod i m = snd $ i `divMod` m
 
 applyRotation :: Rotation -> Int -> Int
-applyRotation (Rotation L (Angle a)) b = b - a
-applyRotation (Rotation R (Angle a)) b = b + a
+applyRotation (Rotation L (Angle a)) b = (b - a) `absMod` 100
+applyRotation (Rotation R (Angle a)) b = (b + a) `absMod` 100
 
-updateZeroCount :: Int -> Int -> Int
-updateZeroCount state =
-  if state `mod` 100 == 0
-    then (+) 1
-    else (+) 0
+solvePart1 :: [Rotation] -> Int
+solvePart1 = solveWith 50 0
+  where
+    solveWith :: Int -> Int -> [Rotation] -> Int
+    solveWith _ zeroCount [] = zeroCount
+    solveWith state zeroCount (r : rs) =
+      let newState = applyRotation r state
+       in let newZeroCount = updateZeroCount newState zeroCount
+           in solveWith newState newZeroCount rs
 
-solvePart2 :: [Rotation] -> Either Error Int
-solvePart2 = Right . solvePart2With 50 0
+    updateZeroCount :: Int -> Int -> Int
+    updateZeroCount state =
+      if state `mod` 100 == 0
+        then (+) 1
+        else (+) 0
 
-solvePart2With :: Int -> Int -> [Rotation] -> Int
-solvePart2With _ zeroCount [] = zeroCount
-solvePart2With state zeroCount (r : rs) =
-  let newState = applyRotation r state
-   in let newZeroCount = updateZeroCountPart2 r state newState zeroCount
-       in solvePart2With newState newZeroCount rs
+solvePart2 :: [Rotation] -> Int
+solvePart2 rs = snd $ foldl go (50, 0) rs
+  where
+    go :: (Int, Int) -> Rotation -> (Int, Int)
+    go (state, zeroCount) r@(Rotation side _) =
+      let r' = rotationToInt r
+          state' = (state + r') `absMod` 100
+          zeroCount' =
+            zeroCount + (if state' == 0 then 1 else 0) + case side of
+              L -> abs $ (r' + state) `div` 100
+              R -> abs $ (r' - state) `div` 100
+       in (state', zeroCount')
 
-updateZeroCountPart2 :: Rotation -> Int -> Int -> Int -> Int
-updateZeroCountPart2 (Rotation L (Angle a)) s1 0 = if a > s1 then (+) 2 else (+) 1
-updateZeroCountPart2 (Rotation R (Angle a)) s1 0 = if a > (100 - s1) then (+) 2 else (+) 1
-updateZeroCountPart2 (Rotation L (Angle a)) s1 s2 = if a > (s2 - s1) then (+) 1 else (+) 0
-updateZeroCountPart2 (Rotation R (Angle a)) s1 s2 = if a > (s1 - s2) then (+) 1 else (+) 0
+    rotationToInt :: Rotation -> Int
+    rotationToInt (Rotation L (Angle a)) = -a
+    rotationToInt (Rotation R (Angle a)) = a
 
 main :: IO ()
-main = interact (show . (solvePart2 <=< parse))
+main = interact $ \s ->
+  let input = parse s
+      part1 = solvePart1 <$> input
+      part2 = solvePart2 <$> input
+   in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2 ++ "\n"
