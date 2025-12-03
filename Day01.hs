@@ -1,8 +1,6 @@
 module Day01 where
 
-import Control.Monad (join, (<=<))
 import Data.Bifunctor (bimap)
-import Data.Word (Word8)
 import Text.Read (readEither)
 
 data Side = L | R
