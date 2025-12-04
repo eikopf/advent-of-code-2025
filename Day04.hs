@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-x-partial #-}
+
 module Day04 where
 
 import Data.Array (Array, bounds, indices, listArray, (!), (//))
@@ -42,7 +44,7 @@ neighbors grid i = filter (inRange (bounds grid)) (offsets <*> [i])
         ]
 
 solvePart1 :: Array (Int, Int) Cell -> Int
-solvePart1 grid = length $ filter (< 4) $ map (countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
+solvePart1 grid = length $ filter ((>) 4 . countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
 
 solvePart2 :: Array (Int, Int) Cell -> Int
 solvePart2 grid = case removableIndices grid of
