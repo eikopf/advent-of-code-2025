@@ -30,16 +30,7 @@ neighbors :: Array (Int, Int) Cell -> (Int, Int) -> [(Int, Int)]
 neighbors grid i = filter (inRange (bounds grid)) ((\(x, y) (a, b) -> (x + a, y + b)) <$> offsets <*> [i])
   where
     offsets :: [(Int, Int)]
-    offsets =
-      [ (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1)
-      ]
+    offsets = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 solvePart1 :: Array (Int, Int) Cell -> Int
 solvePart1 grid = length $ filter ((>) 4 . countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
