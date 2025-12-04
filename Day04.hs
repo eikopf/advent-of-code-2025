@@ -1,8 +1,6 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day04 where
 
-import Data.Array (Array, bounds, indices, listArray, (!))
+import Data.Array (Array, bounds, indices, listArray, (!), (//))
 import Data.Ix (inRange)
 
 data Cell
@@ -47,7 +45,12 @@ solvePart1 :: Array (Int, Int) Cell -> Int
 solvePart1 grid = length $ filter (< 4) $ map (countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
 
 solvePart2 :: Array (Int, Int) Cell -> Int
-solvePart2 grid = _
+solvePart2 grid = case removableIndices grid of
+  [] -> 0
+  is -> length is + solvePart2 (grid // map (,Empty) is)
+  where
+    removableIndices :: Array (Int, Int) Cell -> [(Int, Int)]
+    removableIndices grid = filter ((>) 4 . countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
 
 main :: IO ()
 main = interact $ \s ->
