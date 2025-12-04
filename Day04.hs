@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-typed-holes #-}
+
 module Day04 where
 
 import Data.Array (Array, bounds, indices, listArray, (!))
@@ -21,15 +23,12 @@ parse s =
       elems = map charToCell $ concat rows
    in listArray ((1, 1), (rowLen, colLen)) elems
 
-solvePart1 :: Array (Int, Int) Cell -> Int
-solvePart1 grid = length $ filter (< 4) $ map (countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
+countOccupiedNeighbors :: Array (Int, Int) Cell -> (Int, Int) -> Int
+countOccupiedNeighbors grid i = length $ filter ((==) Occupied . (!) grid) $ neighbors grid i
+
+neighbors :: Array (Int, Int) Cell -> (Int, Int) -> [(Int, Int)]
+neighbors grid i = filter (inRange (bounds grid)) (offsets <*> [i])
   where
-    countOccupiedNeighbors :: Array (Int, Int) Cell -> (Int, Int) -> Int
-    countOccupiedNeighbors grid i = length $ filter ((==) Occupied . (!) grid) $ neighbors grid i
-
-    neighbors :: Array (Int, Int) Cell -> (Int, Int) -> [(Int, Int)]
-    neighbors grid i = filter (inRange (bounds grid)) (offsets <*> [i])
-
     offsets :: [(Int, Int) -> (Int, Int)]
     offsets =
       map
@@ -44,9 +43,15 @@ solvePart1 grid = length $ filter (< 4) $ map (countOccupiedNeighbors grid) $ fi
           (1, 1)
         ]
 
+solvePart1 :: Array (Int, Int) Cell -> Int
+solvePart1 grid = length $ filter (< 4) $ map (countOccupiedNeighbors grid) $ filter ((==) Occupied . (!) grid) $ indices grid
+
+solvePart2 :: Array (Int, Int) Cell -> Int
+solvePart2 grid = _
+
 main :: IO ()
 main = interact $ \s ->
   let input = parse s
       part1 = solvePart1 input
-      part2 = () -- solvePart2 input
+      part2 = solvePart2 input
    in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2 ++ "\n"
