@@ -1,11 +1,8 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day05 where
 
 import Data.Bifunctor (bimap)
-import Data.Function (fix)
 import Data.Ix (inRange, rangeSize)
-import Data.List (findIndex, foldl')
+import Data.List (foldl')
 
 data Db = Db [(Int, Int)] [Int]
   deriving (Show)
