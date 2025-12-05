@@ -2,7 +2,7 @@
 
 > All in Haskell this year, to force myself to get better with the language.
 
-Each `.hs` files corresponds to a specific day, and reads input from stdin. They can be run as follows:
+Each `.hs` file corresponds to a specific day, and reads input from stdin. They can be run as follows:
 
 ```sh
 # for a given day N (padded with a leading zero if necessary)
@@ -15,7 +15,7 @@ runhaskell Day03.hs < data/day03-input.txt
 The files can also be compiled with `ghc` by using the `-main-is` flag to set the module name. Some examples:
 
 ```sh
-# the most simple working example
+# the simplest working example
 ghc -main-is Day04 Day04.hs
 ./Day04 < data/day04-input.txt
 
