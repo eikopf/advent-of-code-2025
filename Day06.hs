@@ -26,13 +26,11 @@ parseWith f s = do
     takeLengths (l : ls) xs = take l xs : takeLengths ls (drop (l + 1) xs)
 
 solve :: [Problem] -> Int
-solve = sum . map (\(Problem op is) -> foldl' (runOp op) (identity op) is)
+solve = sum . map eval
   where
-    runOp Add = (+)
-    runOp Mul = (*)
-
-    identity Add = 0
-    identity Mul = 1
+    eval :: Problem -> Int
+    eval (Problem Add xs) = foldl' (+) 0 xs
+    eval (Problem Mul xs) = foldl' (*) 1 xs
 
 main :: IO ()
 main = interact $ \s ->
