@@ -6,6 +6,7 @@ import Data.IntSet (IntSet)
 import Data.IntSet qualified as IntSet
 import Data.Ix (inRange)
 import Data.List qualified as List
+import Data.Maybe (maybe)
 
 data Manifold = Manifold
   { startCol :: Int,
@@ -49,13 +50,9 @@ solvePart2 (Manifold {startCol, splitters}) = sum . IntMap.elems $ go (IntMap.si
     updateTimelines timelines col = case IntMap.lookup col timelines of
       Nothing -> timelines
       Just n ->
-        let timelines' = IntMap.alter (updateOrSet (+ n) n) (col - 1) timelines
-            timelines'' = IntMap.alter (updateOrSet (+ n) n) (col + 1) timelines'
+        let timelines' = IntMap.alter (maybe (Just n) (pure . (+ n))) (col - 1) timelines
+            timelines'' = IntMap.alter (maybe (Just n) (pure . (+ n))) (col + 1) timelines'
          in IntMap.delete col timelines''
-
-    updateOrSet :: (a -> a) -> a -> Maybe a -> Maybe a
-    updateOrSet _ x Nothing = Just x
-    updateOrSet f _ (Just x) = Just (f x)
 
 main :: IO ()
 main = interact $ \s ->
