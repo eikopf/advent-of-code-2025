@@ -1,7 +1,7 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day07 where
 
+import Data.IntMap.Strict (IntMap)
+import Data.IntMap.Strict qualified as IntMap
 import Data.IntSet (IntSet)
 import Data.IntSet qualified as IntSet
 import Data.Ix (inRange)
@@ -43,9 +43,28 @@ solvePart1 (Manifold {cols, startCol, splitters}) = go (IntSet.singleton startCo
           cols'' = if inRange range (col + 1) then IntSet.insert (col + 1) cols' else cols'
        in IntSet.delete col cols''
 
+solvePart2 :: Manifold -> Int
+solvePart2 (Manifold {cols, startCol, splitters}) = sum . IntMap.elems $ go (IntMap.singleton startCol 1) (0, cols - 1) splitters
+  where
+    go :: IntMap Int -> (Int, Int) -> [(Int, Int)] -> IntMap Int
+    go timelines _ [] = timelines
+    go timelines range ((_, col) : ss) = go (updateTimelines timelines range col) range ss
+
+    updateTimelines :: IntMap Int -> (Int, Int) -> Int -> IntMap Int
+    updateTimelines timelines range col = case IntMap.lookup col timelines of
+      Nothing -> timelines
+      Just n ->
+        let timelines' = if inRange range (col - 1) then IntMap.alter (updateOrSet (+ n) n) (col - 1) timelines else timelines
+            timelines'' = if inRange range (col + 1) then IntMap.alter (updateOrSet (+ n) n) (col + 1) timelines' else timelines'
+         in IntMap.delete col timelines''
+
+    updateOrSet :: (a -> a) -> a -> Maybe a -> Maybe a
+    updateOrSet _ x Nothing = Just x
+    updateOrSet f _ (Just x) = Just (f x)
+
 main :: IO ()
 main = interact $ \s ->
   let input = parse s
       part1 = solvePart1 <$> input
-      part2 = () -- solvePart2 <$> input
+      part2 = solvePart2 <$> input
    in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2 ++ "\n"
