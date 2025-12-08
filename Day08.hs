@@ -36,14 +36,14 @@ pairs =
     . mapMaybe nonEmpty
     . tails
 
-solvePart1 :: [Vec3 Int] -> Int
-solvePart1 =
+solvePart1 :: Int -> [Vec3 Int] -> Int
+solvePart1 i =
   foldl' (*) 1
     . take 3
     . sortBy (\lhs rhs -> compare (Down lhs) (Down rhs))
     . fmap Set.size
     . go []
-    . Seq.take 1000
+    . Seq.take i
     . Seq.sortOn (uncurry d2)
     . pairs
   where
@@ -57,6 +57,6 @@ solvePart1 =
 main :: IO ()
 main = interact $ \s ->
   let input = parse s
-      part1 = solvePart1 input
+      part1 = solvePart1 1000 input
       part2 = () -- solvePart2 input
    in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2 ++ "\n"
