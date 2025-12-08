@@ -56,12 +56,11 @@ solvePart1 i =
        in go (c : cs') ps
 
 -- rather than unifying circuits here, we just look for the shortest prefix of point pairs (ordered
--- by proximity) which contains all the points in the input. this works because we're basically
--- visiting the edges of the minimum spanning tree in order of least weight (and including some
--- extra edges with less weight than the largest edge in the tree), and in doing so we necessarily
--- construct the subgraph of the MST which does not include the 1-edge vertex of the edge with the
--- greatest weight. this applies recursively to that subgraph in turn, down to the trivial case
--- where a single pair of points forms a single circuit by itself
+-- by proximity) which contains all the points in the input. this works because we're effectively
+-- building a graph between all the points which contains every edge (as defined by the Euclidean
+-- metric) whose distance is less than the longest distance in the minimum spanning tree of the
+-- points. the minimum spanning tree itself is obviously a subgraph of this graph, and the very
+-- last point we visit happens to be exactly this longest edge in the minimum spanning tree
 
 solvePart2 :: [Vec3 Int] -> Int
 solvePart2 ps = go Set.empty (length ps) . Seq.sortOn (uncurry d2) . pairs $ ps
