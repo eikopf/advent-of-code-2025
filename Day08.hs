@@ -54,9 +54,22 @@ solvePart1 i =
           c = Set.unions (Set.fromList [pl, pr] : cs)
        in go (c : cs') ps
 
+solvePart2 :: [Vec3 Int] -> Int
+solvePart2 ps = go [] (length ps) . Seq.sortOn (uncurry d2) . pairs $ ps
+  where
+    go :: [Set (Vec3 Int)] -> Int -> Seq (Vec3 Int, Vec3 Int) -> Int
+    go _ pointCount Empty = error "unexpected end of list"
+    go circuits pointCount ((pl@(Vec3 lx _ _), pr@(Vec3 rx _ _)) :<| ps) =
+      let (cs, cs') = partition (\set -> Set.member pl set || Set.member pr set) circuits
+          c = Set.unions (Set.fromList [pl, pr] : cs)
+       in ( if null cs' && Set.size c == pointCount
+              then lx * rx
+              else go (c : cs') pointCount ps
+          )
+
 main :: IO ()
 main = interact $ \s ->
   let input = parse s
       part1 = solvePart1 1000 input
-      part2 = () -- solvePart2 input
+      part2 = solvePart2 input
    in "part 1: " ++ show part1 ++ "\npart 2: " ++ show part2 ++ "\n"
