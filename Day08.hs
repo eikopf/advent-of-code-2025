@@ -55,18 +55,22 @@ solvePart1 i =
           c = Set.unions (Set.fromList [pl, pr] : cs)
        in go (c : cs') ps
 
+-- rather than unifying circuits here, we just look for the shortest prefix of point pairs (ordered
+-- by proximity) which contains all the points in the input. this works because we're basically
+-- visiting the edges of the minimum spanning tree in order of least weight (and including some
+-- extra edges with less weight than the largest edge in the tree), and in doing so we necessarily
+-- construct the subgraph of the MST which does not include the 1-edge vertex of the edge with the
+-- greatest weight. this applies recursively to that subgraph in turn, down to the trivial case
+-- where a single pair of points forms a single circuit by itself
+
 solvePart2 :: [Vec3 Int] -> Int
-solvePart2 ps = go [] (length ps) . Seq.sortOn (uncurry d2) . pairs $ ps
+solvePart2 ps = go Set.empty (length ps) . Seq.sortOn (uncurry d2) . pairs $ ps
   where
-    go :: [Set (Vec3 Int)] -> Int -> Seq (Vec3 Int, Vec3 Int) -> Int
+    go :: Set (Vec3 Int) -> Int -> Seq (Vec3 Int, Vec3 Int) -> Int
     go _ pointCount Empty = error "unexpected end of list"
-    go circuits pointCount ((pl@(Vec3 lx _ _), pr@(Vec3 rx _ _)) :<| ps) =
-      let (cs, cs') = partition (\set -> Set.member pl set || Set.member pr set) circuits
-          c = Set.unions (Set.fromList [pl, pr] : cs)
-       in ( if null cs' && Set.size c == pointCount
-              then lx * rx
-              else go (c : cs') pointCount ps
-          )
+    go seenPoints pointCount ((pl@(Vec3 lx _ _), pr@(Vec3 rx _ _)) :<| ps) =
+      let seenPoints' = Set.union seenPoints (Set.fromList [pl, pr])
+       in (if Set.size seenPoints' == pointCount then lx * rx else go seenPoints' pointCount ps)
 
 main :: IO ()
 main = interact $ \s ->
