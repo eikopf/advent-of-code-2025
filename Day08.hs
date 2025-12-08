@@ -34,6 +34,9 @@ pairs =
     . mapMaybe nonEmpty
     . tails
 
+-- the solution for part 1 would be much faster using a union-find data structure, but since there
+-- doesn't seem to be an implementation of one in the GHC libraries i'm just using a set of sets
+
 solvePart1 :: Int -> [Vec3 Int] -> Int
 solvePart1 i =
   foldl' (*) 1
