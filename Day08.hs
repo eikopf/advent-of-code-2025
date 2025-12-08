@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day08 where
 
 import Data.Foldable (foldl')
