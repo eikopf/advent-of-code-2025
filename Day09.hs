@@ -1,15 +1,10 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day09 where
 
-import Data.Bifoldable (biall)
 import Data.Bifunctor (bimap)
-import Data.Ix (Ix, range)
-import Data.List (tails)
+import Data.List (find, sortOn, tails)
 import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty)
 import Data.Maybe (mapMaybe)
-import Data.Set (Set)
-import Data.Set qualified as Set
+import Data.Ord (Down (..))
 
 parse :: String -> [(Int, Int)]
 parse = map (bimap read (read . drop 1) . break (== ',')) . lines
@@ -26,33 +21,22 @@ pairs =
 solvePart1 :: [(Int, Int)] -> Int
 solvePart1 = maximum . map (uncurry area) . pairs
 
-solvePart2 :: [(Int, Int)] -> Int
+solvePart2 :: [(Int, Int)] -> Maybe Int
 solvePart2 ps =
-  let edgeSet = buildPolygon ps
-      vertexSet = Set.fromList ps
-      width = maximum (map fst ps)
-      p = inside vertexSet edgeSet width
-   in maximum . map (uncurry area) . filter (biall p p . otherCorners) . pairs $ ps
+  let edges = adjacentPairs ps
+   in fmap (uncurry area)
+        . find (flip all edges . flip insideEdge)
+        . sortOn (Down . uncurry area)
+        . pairs
+        $ ps
   where
-    otherCorners :: ((a, a), (a, a)) -> ((a, a), (a, a))
-    otherCorners ((a, b), (c, d)) = ((a, d), (c, b))
-
-    -- this works, but takes forever to solve part 2
-    -- maybe there's a faster way to check this value? could i build a quadtree?
-
-    inside :: Set (Int, Int) -> Set (Int, Int) -> Int -> (Int, Int) -> Bool
-    inside vertexSet edgeSet width p@(px, py) =
-      let vertexHits = length $ filter (`Set.member` vertexSet) $ map (,py) [px .. width]
-          edgeHits = length $ filter (`Set.member` edgeSet) $ map (,py) [px .. width]
-       in Set.member p edgeSet
-            || odd vertexHits
-            || (vertexHits == 0 && odd edgeHits)
-
-    buildPolygon :: [(Int, Int)] -> Set (Int, Int)
-    buildPolygon = Set.fromList . concatMap range' . adjacentPairs
-
-    range' :: (Ix a) => (a, a) -> [a]
-    range' (a, b) = if a < b then range (a, b) else range (b, a)
+    -- \| Checks that a rectangle is strictly to one side of an edge.
+    insideEdge :: ((Int, Int), (Int, Int)) -> ((Int, Int), (Int, Int)) -> Bool
+    insideEdge edge@(e1, e2) rect@(p1, p2) =
+      max (fst p1) (fst p2) <= min (fst e1) (fst e2)
+        || min (fst p1) (fst p2) >= max (fst e1) (fst e2)
+        || max (snd p1) (snd p2) <= min (snd e1) (snd e2)
+        || min (snd p1) (snd p2) >= max (snd e1) (snd e2)
 
     adjacentPairs :: [a] -> [(a, a)]
     adjacentPairs xs = zip xs (drop 1 (cycle xs))
