@@ -2,6 +2,7 @@
 
 module Day10 where
 
+import Control.Monad (filterM)
 import Data.Functor (($>))
 import Data.IntSet (IntSet)
 import Data.IntSet qualified as IntSet
@@ -30,19 +31,27 @@ parse = runParser (many $ Desc <$> lights <*> buttons <*> (space *> joltages <* 
     joltages :: Parsec String () [Int]
     joltages = char '{' *> sepBy (read <$> many1 digit) (char ',') <* char '}'
 
--- let n be the number of lights; then each button corresponds to an item in the
--- powerset of {0, 1, ..., n - 1}. considering each button as a vertex on the
--- n-dimensional hypercube, we want to find the shortest sequence of adjacent
--- vertices starting at ∅ and ending at the goal described by the light sequence
-
 solvePart1 :: [Desc] -> Int
-solvePart1 = _
+solvePart1 =
+  sum
+    . map
+      ( \desc ->
+          let combinations = powerset . map IntSet.fromList . buttons $ desc
+              values = map (foldl' compose IntSet.empty) combinations
+              lightSet = setOfLights . lights $ desc
+              validCombinations = filter ((==) lightSet . snd) (zip combinations values)
+              sizes = map (length . fst) validCombinations
+           in minimum sizes
+      )
   where
     compose :: IntSet -> IntSet -> IntSet
     compose lhs rhs = IntSet.difference (IntSet.union lhs rhs) (IntSet.intersection lhs rhs)
 
     setOfLights :: [LightState] -> IntSet
     setOfLights = IntSet.fromList . map snd . filter ((==) On . fst) . flip zip [0 ..]
+
+    powerset :: [a] -> [[a]]
+    powerset = filterM (const [False, True])
 
 main :: IO ()
 main = interact $ \s ->
