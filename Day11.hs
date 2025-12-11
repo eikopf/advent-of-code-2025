@@ -1,13 +1,11 @@
-{-# OPTIONS_GHC -Wno-typed-holes #-}
-
 module Day11 where
 
+import Control.Monad.State.Strict
+import Data.List (foldl')
 import Data.Map.Strict (Map, (!?))
 import Data.Map.Strict qualified as Map
-import Data.Maybe (mapMaybe)
-import Data.Set (Set)
-import Data.Set qualified as Set
-import Text.Parsec hiding (parse)
+import Data.Maybe (fromMaybe)
+import Text.Parsec hiding (State, parse)
 
 type Node = (Char, Char, Char)
 
@@ -26,29 +24,33 @@ parse = runParser (graphFromEdges <$> many (line <* newline)) () ""
     node :: Parsec String () Node
     node = (,,) <$> letter <*> letter <*> letter
 
-solvePart1 :: Graph Node -> Maybe Int
-solvePart1 graph = go graph Set.empty ('y', 'o', 'u')
+solve :: Graph Node -> Node -> Node -> Int
+solve graph start end = evalState (go graph start) (Map.fromList [(end, 1)])
   where
-    go :: Graph Node -> Set Node -> Node -> Maybe Int
-    go graph _ ('o', 'u', 't') = return 1
-    go graph visitedNodes start = do
-      let visitedNodes' = Set.insert start visitedNodes
-      successors <- edges graph !? start
-      return . sum . mapMaybe (go graph visitedNodes') . filter (not . flip Set.member visitedNodes') $ successors
+    go :: Graph Node -> Node -> State (Map Node Int) Int
+    go graph start = do
+      tbl <- get
+      case tbl !? start of
+        Just n -> return n
+        Nothing -> do
+          let successors = fromMaybe [] (edges graph !? start)
+          let actions = map (go graph) successors
+          sum <- foldl' (liftA2 (+)) (pure 0) actions
+          () <- modify (Map.insert start sum)
+          return sum
 
-solvePart2 :: Graph Node -> Maybe Int
-solvePart2 graph = go graph Set.empty (False, False) ('s', 'v', 'r')
-  where
-    go :: Graph Node -> Set Node -> (Bool, Bool) -> Node -> Maybe Int
-    go graph visitedNodes state ('o', 'u', 't')
-      | state == (True, True) = return 1
-      | otherwise = return 0
-    go graph visitedNodes (dacSeen, fftSeen) start = do
-      let visitedNodes' = Set.insert start visitedNodes
-      let dacSeen' = dacSeen || start == ('d', 'a', 'c')
-      let fftSeen' = fftSeen || start == ('f', 'f', 't')
-      successors <- edges graph !? start
-      return . sum . mapMaybe (go graph visitedNodes' (dacSeen', fftSeen')) . filter (not . flip Set.member visitedNodes') $ successors
+solvePart1 :: Graph Node -> Int
+solvePart1 graph = solve graph ('y', 'o', 'u') ('o', 'u', 't')
+
+solvePart2 :: Graph Node -> Int
+solvePart2 graph =
+  let svrToDac = solve graph ('s', 'v', 'r') ('d', 'a', 'c')
+      svrToFft = solve graph ('s', 'v', 'r') ('f', 'f', 't')
+      dacToFft = solve graph ('d', 'a', 'c') ('f', 'f', 't')
+      fftToDac = solve graph ('f', 'f', 't') ('d', 'a', 'c')
+      dacToOut = solve graph ('d', 'a', 'c') ('o', 'u', 't')
+      fftToOut = solve graph ('f', 'f', 't') ('o', 'u', 't')
+   in (svrToDac * dacToFft * fftToOut) + (svrToFft * fftToDac * dacToOut)
 
 main :: IO ()
 main = interact $ \s ->
