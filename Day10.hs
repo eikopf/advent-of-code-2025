@@ -6,7 +6,7 @@ import Control.Monad (filterM)
 import Data.Functor (($>))
 import Data.IntSet (IntSet)
 import Data.IntSet qualified as IntSet
-import Data.List (foldl', subsequences)
+import Data.List (foldl')
 import Text.Parsec hiding (parse)
 
 data LightState = Off | On
@@ -52,6 +52,17 @@ solvePart1 =
 
     powerset :: [a] -> [[a]]
     powerset = filterM (const [False, True])
+
+-- we can view the button schematics as sparse binary vectors, i.e. for a system with four lights
+-- the schematic (2, 3) is ⟨0, 0, 1, 1⟩. stacking all of these vertically gives us a binary matrix,
+-- and we can then use this to solve each part of the problem.
+--
+-- in the first part, the lights describe another binary vector; e.g. [.##.] is ⟨0, 1, 1, 0⟩. we
+-- need to find the smallest (by sum) positive integer vector x such that Bx = l for the button
+-- matrix B and light vector l.
+--
+-- the second part replaces the binary vector l with a positive integer vector j defined by the
+-- joltage level counters. again, we need to find the smallest x such that Bx = j.
 
 main :: IO ()
 main = interact $ \s ->
