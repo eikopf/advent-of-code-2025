@@ -7,16 +7,15 @@ import Data.Map.Strict qualified as Map
 import Data.Maybe (fromMaybe)
 import Text.Parsec hiding (State, parse)
 
+-- | A graph node.
 type Node = (Char, Char, Char)
 
+-- | A directed graph based on an adjacency list.
 newtype Graph v = Graph {edges :: Map v [v]}
-  deriving (Show)
 
-graphFromEdges :: (Ord v) => [(v, [v])] -> Graph v
-graphFromEdges = Graph . Map.fromList
-
+-- | Parses a graph from a `String`.
 parse :: String -> Either ParseError (Graph Node)
-parse = runParser (graphFromEdges <$> many (line <* newline)) () ""
+parse = runParser (Graph . Map.fromList <$> many (line <* newline)) () ""
   where
     line :: Parsec String () (Node, [Node])
     line = (,) <$> (node <* char ':') <*> many (char ' ' *> node)
@@ -24,9 +23,12 @@ parse = runParser (graphFromEdges <$> many (line <* newline)) () ""
     node :: Parsec String () Node
     node = (,,) <$> letter <*> letter <*> letter
 
+-- | Returns the number of paths between the given points.
 solve :: Graph Node -> Node -> Node -> Int
 solve graph start end = evalState (go graph start) (Map.fromList [(end, 1)])
   where
+    -- Memoizing helper function that converts a DFS from an arbitrary start node
+    -- into an action that threads a (Map Node Int) through the computation.
     go :: Graph Node -> Node -> State (Map Node Int) Int
     go graph start = do
       tbl <- get
@@ -39,9 +41,12 @@ solve graph start end = evalState (go graph start) (Map.fromList [(end, 1)])
           () <- modify (Map.insert start sum)
           return sum
 
+-- | Returns the number of paths between "you" and "out".
 solvePart1 :: Graph Node -> Int
 solvePart1 graph = solve graph ('y', 'o', 'u') ('o', 'u', 't')
 
+-- | Returns the number of paths between "svr" and "out" that include "dac"
+-- and "fft" in any order.
 solvePart2 :: Graph Node -> Int
 solvePart2 graph =
   let svrToDac = solve graph ('s', 'v', 'r') ('d', 'a', 'c')
