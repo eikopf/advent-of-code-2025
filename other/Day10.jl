@@ -1,9 +1,7 @@
 module Day10
 
-export Desc, readbutton, readjoltages, readdesc
-
-using LinearAlgebra
-using RowEchelon
+using LinearAlgebra, JuMP
+import HiGHS
 
 struct Desc
   lights::BitVector
@@ -31,8 +29,29 @@ function readdesc(s)
   Desc(lights, buttons, joltages)
 end
 
-# in principle the solution is then to compute the echelon form of the augmented matrix given by
-# appending Desc.joltages or Desc.lights to transpose(Desc.buttons), and use a constraint solver
-# to find the smallest possible assignment for the free variables
+function solve_part_2_once(d::Desc)
+  A = d.buttons'
+  b = d.joltages
+  m, n = size(A)
+
+  model = Model(HiGHS.Optimizer)
+  set_silent(model)
+
+  @variable(model, x[1:n], Int)
+  @constraint(model, A * x == b)
+  @constraint(model, x >= 0)
+  @objective(model, Min, sum(x))
+
+  optimize!(model)
+  result = value.(x)
+  return sum(result)
+end
+
+function solve_part_2(filename)
+  input = read(filename, String)
+  descs = readdesc.(split(input, '\n')[1:end-1])
+  results = solve_part_2_once.(descs)
+  return convert(Int, sum(results))
+end
 
 end
