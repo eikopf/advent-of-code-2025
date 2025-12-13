@@ -1,6 +1,7 @@
 # Advent of Code 2025
 
-> All in Haskell this year, to force myself to get better with the language.
+> My intention was to do everything in Haskell this year, and that was true for every problem
+> except for part 2 of day 10, which is implemented in `other/Day10.jl`.
 
 Each `.hs` file corresponds to a specific day, and reads input from stdin. They can be run as follows:
 
